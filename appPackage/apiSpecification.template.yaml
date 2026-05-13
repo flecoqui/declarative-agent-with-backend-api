@@ -1,0 +1,89 @@
+openapi: 3.0.3
+info:
+  title: Declarative Agent Tasks API
+  version: 1.0.0
+  description: Personal task list protected by Microsoft Entra ID.
+servers:
+  - url: ${{BASE_URL}}
+    description: Public HTTPS endpoint of the FastAPI backend.
+paths:
+  /tasks:
+    get:
+      operationId: listTasks
+      summary: List the caller's tasks
+      responses:
+        "200":
+          description: The user's tasks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskList"
+    post:
+      operationId: createTask
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+  /tasks/{task_id}/complete:
+    post:
+      operationId: completeTask
+      summary: Mark a task as completed
+      parameters:
+        - in: path
+          name: task_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Task not found
+components:
+  schemas:
+    TaskCreate:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        due:
+          type: string
+          format: date
+          nullable: true
+    Task:
+      allOf:
+        - $ref: "#/components/schemas/TaskCreate"
+        - type: object
+          required: [id, owner, done]
+          properties:
+            id:
+              type: integer
+            owner:
+              type: string
+            done:
+              type: boolean
+    TaskList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"

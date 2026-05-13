@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.2/schema.json",
+  "schema_version": "v2.2",
+  "name_for_human": "Task Assistant API",
+  "description_for_human": "Lets the agent read and write the user's tasks in the Tasks backend.",
+  "description_for_model": "Performs CRUD operations against the user's personal task list. Use listTasks before completeTask so you can resolve a task title to its id.",
+  "namespace": "tasks",
+  "functions": [
+    {
+      "name": "listTasks",
+      "description": "Returns every task that belongs to the signed-in user."
+    },
+    {
+      "name": "createTask",
+      "description": "Creates a new task. Requires a title; due date is optional (ISO 8601 yyyy-mm-dd)."
+    },
+    {
+      "name": "completeTask",
+      "description": "Marks the task with the given id as completed."
+    }
+  ],
+  "runtimes": [
+    {
+      "type": "OpenApi",
+      "auth": {
+        "type": "OAuthPluginVault",
+        "reference_id": "${{OAUTH_CONFIG_ID}}"
+      },
+      "spec": {
+        "url": "apiSpecification.yaml"
+      },
+      "run_for_functions": ["listTasks", "createTask", "completeTask"]
+    }
+  ]
+}
