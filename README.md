@@ -87,7 +87,36 @@ Expose it publicly (Copilot must reach it over HTTPS), e.g.:
 # Dev Tunnel (requires a signed-in Dev Tunnel session first)
 devtunnel user login
 # Follow the device-code sign-in flow in your browser, then:
-devtunnel host -p 8000 --allow-anonymous
+TUNNEL_NAME="declarative-agent"
+TUNNEL_ID=""
+TUNNEL_PORT=8000
+# Try to find the named tunnel
+TUNNEL_ID=$(devtunnel show "$TUNNEL_NAME" 2>/dev/null \
+  | awk -F':' '/^Tunnel ID/ {gsub(/ /, "", $2); print $2; exit}')
+
+if [ -z "${TUNNEL_ID:-}" ]; then
+  # Fallback: look for any existing tunnel
+  if devtunnel list &>/dev/null; then
+    TUNNEL_ID=$(devtunnel list 2>/dev/null | awk 'NR>2 && /^[a-z]/ {print $1; exit}' || true)
+  fi
+
+  if [ -n "$TUNNEL_ID" ]; then
+    echo "Reusing existing tunnel: $TUNNEL_ID"
+  else
+    echo "Creating a new persistent dev tunnel '$TUNNEL_NAME'…"
+    devtunnel create --allow-anonymous "$TUNNEL_NAME" 2>&1 || \
+      echo "Could not create tunnel '$TUNNEL_NAME'"
+    TUNNEL_ID="$TUNNEL_NAME"
+    echo "Created tunnel: $TUNNEL_ID"
+
+    echo "Adding port 8000 to tunnel…"
+    devtunnel port create "$TUNNEL_ID" -p $TUNNEL_PORT 2>/dev/null || true
+    echo "Port $TUNNEL_PORT added"
+  fi
+else
+    echo "Reusing tunnel: $TUNNEL_ID"
+fi
+devtunnel host "$TUNNEL_ID" 
 ```
 
 ```bash
