@@ -84,11 +84,19 @@ uvicorn app.main:app --reload --port 8000
 Expose it publicly (Copilot must reach it over HTTPS), e.g.:
 
 ```bash
-# either dev tunnel
+# Dev Tunnel (requires a signed-in Dev Tunnel session first)
+devtunnel user login
+# Follow the device-code sign-in flow in your browser, then:
 devtunnel host -p 8000 --allow-anonymous
-# or ngrok
+```
+
+```bash
+# or ngrok (works even when your tenant blocks anonymous Dev Tunnel creation)
 ngrok http 8000
 ```
+
+If `devtunnel host ...` still reports `Unauthorized tunnel creation access`,
+use `ngrok http 8000` instead and set `BASE_URL` to the ngrok HTTPS URL.
 
 Set `BASE_URL` in `backend/.env` to that public HTTPS URL — it is injected
 into `apiSpecification.yaml` (`servers[0].url`) at packaging time (section 4).
@@ -127,7 +135,7 @@ registrations.
    > Use your tenant GUID for `<TENANT_ID>` (single-tenant). Use `common` only
    > if both app registrations are configured as multi-tenant.
 
-4. Click **Save**. The portal returns a **Registration ID** (a GUID) — copy
+4. Click **Save**. The portal returns a **Registration ID** — copy
    it into `backend/.env` as `OAUTH_CONFIG_ID`. It is substituted into
    `ai-plugin.json` at packaging time.
 
