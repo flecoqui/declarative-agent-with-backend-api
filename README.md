@@ -169,6 +169,9 @@ registrations.
    `ai-plugin.json` at packaging time.
 
   ![OAuth Client Registration](./assets/oauth-client-registration.png)
+    **Notes:**
+    In order to test successfully this sample application locally, you need to allow any Teams App to use this OAuth client configuration. 
+  ![OAuth Client Registration Exception](./assets/oauth-client-registration-note.png)
 
 ### 3.3 Confirm the redirect URI on the Entra app
 
@@ -275,24 +278,69 @@ After this step `build/appPackage/` contains the fully rendered
 
 ### 4.2 Zip and upload
 
+1. Prepare the application package with the commands below:
 ```bash
 cd build/appPackage
 zip ../../declagent.zip manifest.json declarativeAgent.json ai-plugin.json apiSpecification.yaml color.png outline.png
 cd ../..
 ```
+2. Open the url https://teams.cloud.microsoft/ with your browser
+3. Select 'Apps' tab and Manage your apps'
+  ![UX-Manage-App](./assets/ux-manage-app.png)
+4. Click on the button 'Upload an app'
+  ![UX-Upload-App](./assets/ux-upload.png)
+5. On the dialog box 'Upload an app' click on the button 'Upload a custom app'
+  ![UX-Upload-Custom-App](./assets/ux-upload-custom.png)
+6. On the Application dialog box, click on the button 'Add'
+  ![UX-Add-App](./assets/ux-add-app.png)
+7. Once the Application is added, click on the button 'Open with Copilot'
+  ![UX-Open-App](./assets/ux-open-app.png)
+8. The Declarative Agent Task Assistant chat is displayed.
+  ![UX-Home](./assets/ux-home.png)
 
-Upload `declagent.zip` to **Microsoft 365 Copilot → Agents → Add agent →
-Upload custom agent**, or sideload via the Teams Developer Portal.
+### 4.3 Using the agent
 
-> Re-run section 4.1 whenever you change `backend/.env` (e.g. a new tunnel
-> URL in `BASE_URL`) or edit any `*.template.*` file.
+1. Click on the 'Show my tasks' link to fill the chat and then click on the button to send the question
+  ![UX-Chat](./assets/ux-chat.png)
+2. As it's the first request calling the API, click on the 'Allow' button
+  ![UX-Allow](./assets/ux-allow.png)
+3. As the user is not yet signed, click on the button 'Sign In'
+  ![UX-Sign](./assets/ux-sign.png)
+4. Select the user account to sign in.
+  ![UX-Signin](./assets/ux-signin.png)
+5. The result is displayed in the chat.
+  ![UX-Result](./assets/ux-result.png)
+6. If you face error, you could active the developer mode in entering '-developer on' in the chat.
+  ![UX-developer](./assets/ux-developer.png)
+7. Once the developer mode is on, you can get further information when the declarative agent call the API.
+  ![UX-debug](./assets/ux-debug.png)
 
-## 5. Try it
 
-In Microsoft 365 Copilot, pick the **Task Assistant** agent and ask:
+## 4.4 Publish the agent to the organization's catalog (required for admin features)
 
-> *List my tasks.*
-> *Add a task: "Write the quarterly report" due next Friday.*
+Uploading `declagent.zip` via **Copilot → Add agent → Upload custom agent**
+only **sideloads** the agent for your own account. A sideloaded agent works for
+testing, but it does **not** appear in tenant-wide admin experiences. Those surfaces only list agents that are **published to the organization's app catalog and approved**.
 
-Copilot will perform the OAuth dance, get an Entra token for
-`api://<API_APP_ID>/access_as_user`, and call the FastAPI backend.
+To make the agent discoverable org-wide:
+
+1. **Submit the package to the org catalog.** Choose one:
+   - **Teams admin center** (https://admin.teams.microsoft.com/) → **Teams apps → Manage apps → Upload new app** →
+     upload `declagent.zip`, or
+   - **Microsoft 365 admin center** → **Settings → Integrated apps → Upload
+     custom apps** → upload `declagent.zip`.
+2. **Approve / allow the app for the organization.** In **Manage apps**, set the
+   app status to **Allowed** (not *Blocked* or *Pending approval*). Assign an app
+   permission/setup policy if your tenant requires one.
+3. **Confirm prerequisites** for the admin to see it:
+   - The agent must contain at least one **API plugin (tool)** or **knowledge
+     source** — an empty agent is filtered out.
+   - You must sign in to the admin center with a role that can manage agents
+     (e.g. **Global Administrator** or the relevant Integrated apps / Copilot
+     admin role).
+   - The tenant must have the required **Microsoft 365 Copilot** (and, for the
+     Sales picker, **Copilot for Sales**) licensing.
+   - Everything must live in the **same tenant**.
+4. **Wait for propagation.** A newly published agent can take time (often up to
+   ~24 hours) to show up in admin center search.
+

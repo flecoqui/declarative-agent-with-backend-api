@@ -1,7 +1,8 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.2/schema.json",
-  "version": "v1.2",
-  "name": "Task Assistant",
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.6/schema.json",
+  "version": "v1.6",
+  "id": "taskassistant",
+  "name": "Declarative Agent Task Assistant",
   "description": "Helps the signed-in user list, create and complete tasks stored in a private Entra ID-protected backend.",
   "instructions": "You are Task Assistant. Help the user manage personal tasks via the connected Tasks API.\n\nGuidelines:\n- Always call the API to read or write tasks; never invent task data.\n- When creating a task, confirm the title and (if mentioned) the due date with the user before calling `createTask`.\n- When listing tasks, present them as a short markdown list grouped by status (open vs completed) and include the due date when present.\n- If the user asks to mark something done, find the matching task by title from the most recent list and call `completeTask`.\n- If the API returns 401 or 403, tell the user to re-sign in or check their permissions.",
   "conversation_starters": [
@@ -16,6 +17,11 @@
     {
       "title": "Complete a task",
       "text": "Mark my last task as done."
+    }
+  ],
+  "capabilities": [
+    {
+      "name": "WebSearch"
     }
   ],
   "actions": [
