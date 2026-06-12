@@ -284,35 +284,35 @@ cd build/appPackage
 zip ../../declagent.zip manifest.json declarativeAgent.json ai-plugin.json apiSpecification.yaml color.png outline.png
 cd ../..
 ```
-2. Open the url https://teams.cloud.microsoft/ with your browser
-3. Select 'Apps' tab and Manage your apps'
+2. Open the url https://teams.cloud.microsoft/ with your browser  
+3. Select 'Apps' tab and Manage your apps'  
   ![UX-Manage-App](./assets/ux-manage-app.png)
-4. Click on the button 'Upload an app'
+4. Click on the button 'Upload an app'  
   ![UX-Upload-App](./assets/ux-upload.png)
-5. On the dialog box 'Upload an app' click on the button 'Upload a custom app'
+5. On the dialog box 'Upload an app' click on the button 'Upload a custom app'  
   ![UX-Upload-Custom-App](./assets/ux-upload-custom.png)
-6. On the Application dialog box, click on the button 'Add'
+6. On the Application dialog box, click on the button 'Add'  
   ![UX-Add-App](./assets/ux-add-app.png)
-7. Once the Application is added, click on the button 'Open with Copilot'
+7. Once the Application is added, click on the button 'Open with Copilot'  
   ![UX-Open-App](./assets/ux-open-app.png)
-8. The Declarative Agent Task Assistant chat is displayed.
+8. The Declarative Agent Task Assistant chat is displayed.  
   ![UX-Home](./assets/ux-home.png)
 
 ### 4.3 Using the agent
 
-1. Click on the 'Show my tasks' link to fill the chat and then click on the button to send the question
+1. Click on the 'Show my tasks' link to fill the chat and then click on the button to send the question  
   ![UX-Chat](./assets/ux-chat.png)
-2. As it's the first request calling the API, click on the 'Allow' button
+2. As it's the first request calling the API, click on the 'Allow' button  
   ![UX-Allow](./assets/ux-allow.png)
-3. As the user is not yet signed, click on the button 'Sign In'
+3. As the user is not yet signed, click on the button 'Sign In'  
   ![UX-Sign](./assets/ux-sign.png)
-4. Select the user account to sign in.
+4. Select the user account to sign in.  
   ![UX-Signin](./assets/ux-signin.png)
-5. The result is displayed in the chat.
+5. The result is displayed in the chat.  
   ![UX-Result](./assets/ux-result.png)
-6. If you face error, you could active the developer mode in entering '-developer on' in the chat.
+6. If you face error, you could active the developer mode in entering '-developer on' in the chat.  
   ![UX-developer](./assets/ux-developer.png)
-7. Once the developer mode is on, you can get further information when the declarative agent call the API.
+7. Once the developer mode is on, you can get further information when the declarative agent call the API.  
   ![UX-debug](./assets/ux-debug.png)
 
 
