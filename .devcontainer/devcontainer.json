@@ -27,16 +27,9 @@
         "ms-vscode.azurecli",
         "ms-vscode.vscode-bicep",
         "teamsdevapp.ms-teams-vscode-extension"    
-      ],
-      "settings": {
-        "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-        "python.terminal.activateEnvironment": true
-      }
+      ]
     }
   },
-  "postCreateCommand": "python -m pip install -r ./.devcontainer/requirements.txt && curl -sL https://aka.ms/DevTunnelCliInstall | bash",
-  "remoteEnv": {
-    "PATH": "/home/vscode/bin:${containerEnv:PATH}"
-  },
+  "postCreateCommand": "python -m pip install -r ./.devcontainer/requirements.txt && curl -sL https://aka.ms/DevTunnelCliInstall | bash && sudo ln -sf $HOME/bin/devtunnel /usr/local/bin/devtunnel",
   "remoteUser": "vscode"
 }

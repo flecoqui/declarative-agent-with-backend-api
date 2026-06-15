@@ -95,7 +95,7 @@ Once you are connected, run the following script:
 
 ```bash
 # Follow the device-code sign-in flow in your browser, then:
-TUNNEL_NAME="declarative-agentx"
+TUNNEL_NAME="declarative-agent"
 TUNNEL_ID=""
 TUNNEL_PORT=8000
 # Try to find the named tunnel
