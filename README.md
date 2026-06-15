@@ -73,21 +73,29 @@ You need two app registrations in the same tenant:
 
 ## 2. Run the backend
 
+### Connect your devcontainer with the Azure subscription
+
+Run the following command to establish a connection with the Azure Subscription
 ```bash
-cd backend
-cp .env.example .env       # fill in TENANT_ID and API_APP_ID
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+az login
 ```
 
-Expose it publicly (Copilot must reach it over HTTPS), e.g.:
+### Run the devtunnel
+
+You need to expose the access to your REST API running locally. The devtunnel will publicly expose your REST API (Copilot must reach it over HTTPS), e.g.:
+
+First establish a connection with devtunnel backend, using the following command:
 
 ```bash
 # Dev Tunnel (requires a signed-in Dev Tunnel session first)
 devtunnel user login
+```
+
+Once you are connected, run the following script:
+
+```bash
 # Follow the device-code sign-in flow in your browser, then:
-TUNNEL_NAME="declarative-agent"
+TUNNEL_NAME="declarative-agentx"
 TUNNEL_ID=""
 TUNNEL_PORT=8000
 # Try to find the named tunnel
@@ -118,32 +126,77 @@ else
 fi
 devtunnel host "$TUNNEL_ID" 
 ```
+When the devtunnel is running, save the url of your devtunnel which should be close to this format:  
+https://xxxxxxx-8000.uks1.devtunnels.ms  
+This url will be stored in the backend configuration file `backend/.env`.  
+
+If `devtunnel host ...` still reports `Unauthorized tunnel creation access`,
+use `ngrok http 8000` instead and set `BASE_URL` to the ngrok HTTPS URL.
 
 ```bash
 # or ngrok (works even when your tenant blocks anonymous Dev Tunnel creation)
 ngrok http 8000
 ```
 
-If `devtunnel host ...` still reports `Unauthorized tunnel creation access`,
-use `ngrok http 8000` instead and set `BASE_URL` to the ngrok HTTPS URL.
-
 Set `BASE_URL` in `backend/.env` to that public HTTPS URL — it is injected
 into `apiSpecification.yaml` (`servers[0].url`) at packaging time (section 4).
 
-## 3. Register the OAuth client in the Teams Developer Portal
+### Configure the REST API service
+
+Create the file `backend\.env` using the command line below:
+
+```bash
+cd backend
+cp .env.example .env       # fill in TENANT_ID and API_APP_ID
+```
+Create a random GUID which will be used to set the Teams App Id, running the following command:
+
+```bash
+python -c "import uuid;print(uuid.uuid4())"
+```
+
+Edit the file .env and fill the following variables:
+- TENANT_ID: your tenant id
+- API_APP_ID: your API app id in the tenant
+- BASE_URL: your devtunnel url
+- TEAMS_APP_ID: the random GUID generated 
+- REQUIRED_SCOPE: default value 'access_as_user'
+
+```bash
+# Microsoft Entra ID tenant (GUID) hosting both app registrations.
+TENANT_ID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+# The backend API app's Application (client) ID. Tokens must have this as `aud`
+# (either as the GUID or as api://<GUID>).
+API_APP_ID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+# Required delegated scope name exposed by the API app (without the api:// URI).
+REQUIRED_SCOPE=access_as_user
+
+# The OAUTH_CONFIG_ID is the Base64-encoded JSON string of the OAuthConfig object created in the frontend, which contains all necessary info for the backend to validate incoming tokens.
+OAUTH_CONFIG_ID=""
+
+# The BASE_URL is the publicly accessible URL where the backend API can be reached. This is used in the frontend to know where to send requests.
+BASE_URL="https://XXXXX.YYY.devtunnels.ms/"
+
+# The TEAMS_APP_ID is the Application (client) ID of the Teams app registration. This is used for validating incoming requests from Teams and for generating tokens that allow the frontend to call the backend on behalf of the user in the context of Teams.
+TEAMS_APP_ID="00000000-0000-0000-0000-000000000000"
+```
+
+
+### Register the OAuth client in the Teams Developer Portal
 
 The declarative agent's API plugin uses an `OAuthPluginVault` reference rather
 than embedding the client ID/secret in the package. You create that reference
-once in the **Teams Developer Portal**, then paste its GUID into
-`ai-plugin.json` as `${{OAUTH_CONFIG_ID}}`.
+once in the **Teams Developer Portal** (https://dev.teams.microsoft.com/).
 
-### 3.1 Open the Teams Developer portal
+#### Open the Teams Developer portal
 
 Sign in at **https://dev.teams.microsoft.com** with an account that has the
 **Teams App Developer** (or higher) role in the same tenant as your two app
 registrations.
 
-### 3.2 Create the OAuth client registration
+#### Create the OAuth client registration
 
 1. In the left rail, expand **Tools**.
 2. Click **OAuth client registrations** → **New OAuth client registration**.
@@ -152,14 +205,15 @@ registrations.
    | Field                    | Value                                                                                          |
    | ------------------------ | ---------------------------------------------------------------------------------------------- |
    | **Registration name**    | `declagent-tasks-api` (any friendly label)                                                     |
-   | **Base URL**             | The public HTTPS base URL of your FastAPI backend (same host as `servers[0].url` in the spec). |
-   | **Application ID / Client ID** | The **Copilot client app's** Application (client) ID (app **B** above).                  |
+   | **Base URL**             | The public HTTPS base URL of your FastAPI backend (same host as the devtunnel url ). |
+   | **Teams app Id** | The Teams app id created before and stored in the `backend/.env` file                  |
+   | **Client ID** | The **Copilot client app's** Application (client) ID (app **B** above).                  |
    | **Client secret**        | A secret you generated on the Copilot client app (value, not the secret ID).                   |
    | **Authorization endpoint** | `https://login.microsoftonline.com/<TENANT_ID>/oauth2/v2.0/authorize`                        |
    | **Token endpoint**       | `https://login.microsoftonline.com/<TENANT_ID>/oauth2/v2.0/token`                              |
    | **Refresh endpoint**     | Same as the token endpoint.                                                                    |
    | **Scope**                | `api://<API_APP_ID>/access_as_user offline_access` (space-separated; `offline_access` enables refresh tokens) |
-   | **Enabled**              | On                                                                                             |
+   | **Enable Proof Key for Code Exchange (PKCE)**              | On                                                                                             |
 
    > Use your tenant GUID for `<TENANT_ID>` (single-tenant). Use `common` only
    > if both app registrations are configured as multi-tenant.
@@ -173,7 +227,7 @@ registrations.
     In order to test successfully this sample application locally, you need to allow any Teams App to use this OAuth client configuration. 
   ![OAuth Client Registration Exception](./assets/oauth-client-registration-note.png)
 
-### 3.3 Confirm the redirect URI on the Entra app
+#### Confirm the redirect URI on the Entra app
 
 Copilot completes the auth-code flow against this fixed redirect URI:
 
@@ -185,7 +239,21 @@ Make sure it is listed under **Authentication → Web → Redirect URIs** on the
 Copilot client app registration (app **B**). Without it, the consent popup
 ends with `AADSTS50011: redirect URI mismatch`.
 
-### 3.4 Collect the values in `backend/.env`
+#### Updating or rotating the registration
+
+If you need to refresh the Client Application secret:
+
+- **Edit:** Tools → OAuth client registrations → pick the entry → **Edit**.
+  The Registration ID does not change, so no repackaging is needed.
+- **Rotate the secret:** generate a new secret on the Entra client app, paste
+  it into the same registration, save. Existing sideloaded packages keep
+  working.
+- **Delete:** removes the binding for every package that references it; users
+  will be prompted to sign in again the next time the agent runs.
+
+### Collect the values in `backend/.env`
+
+Update the file `backend/.env` and set the variable `OAUTH_CONFIG_ID`.
 
 The template files in `appPackage/` are rendered from variables in
 `backend/.env`. Make sure all of the following are filled in (see
@@ -193,9 +261,7 @@ The template files in `appPackage/` are rendered from variables in
 
 | Variable          | Used in                          | Value                                                                                |
 | ----------------- | -------------------------------- | ------------------------------------------------------------------------------------ |
-| `TEAMS_APP_ID`    | `manifest.template.json`         | A fresh GUID (e.g. `python -c "import uuid;print(uuid.uuid4())"`).                   |
 | `OAUTH_CONFIG_ID` | `ai-plugin.template.json`        | The **Registration ID** from step 3.2.                                               |
-| `BASE_URL`        | `apiSpecification.template.yaml` | Public HTTPS URL of your backend (same as the OAuth registration's **Base URL**).    |
 
 ![.env](./assets/env.png)
 
@@ -207,17 +273,30 @@ Finally, add two PNGs next to the manifest in `appPackage/`:
 - `color.png` — 192×192 colored icon
 - `outline.png` — 32×32 transparent outline icon
 
-### 3.5 Updating or rotating the registration
+### Run the REST API service
 
-- **Edit:** Tools → OAuth client registrations → pick the entry → **Edit**.
-  The Registration ID does not change, so no repackaging is needed.
-- **Rotate the secret:** generate a new secret on the Entra client app, paste
-  it into the same registration, save. Existing sideloaded packages keep
-  working.
-- **Delete:** removes the binding for every package that references it; users
-  will be prompted to sign in again the next time the agent runs.
+Now, the file `backend/.env` is fully configured, you can launch the service locally, using the following command lines:
 
-## 4. Build the app package
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+Test whether the endpoint is running locally with the following curl command, you should receive the response '{"detail":"Not Found"}'
+
+```bash
+curl http://localhost:8000/
+{"detail":"Not Found"}
+```
+
+Test whether the devtunnel is running with the following curl command towards the devtunnel url, you should receive the response '{"detail":"Not Found"}'
+
+```bash
+curl https://XXXXXXXX-8000.xxxx.devtunnels.ms/
+{"detail":"Not Found"}
+```
+
+## 3. Build the app package
 
 The app package is produced by:
 
@@ -229,7 +308,7 @@ The app package is produced by:
 4. Zipping that folder together with the static `declarativeAgent.json` and
    the two icons into `declagent.zip`.
 
-### 4.1 Render the templates
+### 3.1 Render the templates
 
 Run this from the repo root. It loads `backend/.env`, walks every
 `appPackage/*.template.*` file, replaces each `${{NAME}}` with the value of
@@ -276,7 +355,7 @@ After this step `build/appPackage/` contains the fully rendered
 `${{...}}` left), plus the static `declarativeAgent.json`, `color.png` and
 `outline.png`.
 
-### 4.2 Zip and upload
+### 3.2 Zip and upload
 
 1. Prepare the application package with the commands below:
 ```bash
@@ -298,7 +377,7 @@ cd ../..
 8. The Declarative Agent Task Assistant chat is displayed.  
   ![UX-Home](./assets/ux-home.png)
 
-### 4.3 Using the agent
+### 3.3 Using the agent
 
 1. Click on the 'Show my tasks' link to fill the chat and then click on the button to send the question  
   ![UX-Chat](./assets/ux-chat.png)
@@ -316,7 +395,7 @@ cd ../..
   ![UX-debug](./assets/ux-debug.png)
 
 
-## 4.4 Publish the agent to the organization's catalog (required for admin features)
+## 3.4 Publish the agent to the organization's catalog (required for admin features)
 
 Uploading `declagent.zip` via **Copilot → Add agent → Upload custom agent**
 only **sideloads** the agent for your own account. A sideloaded agent works for

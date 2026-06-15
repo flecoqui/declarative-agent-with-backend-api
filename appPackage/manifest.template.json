@@ -25,7 +25,7 @@
   "copilotAgents": {
     "declarativeAgents": [
       {
-        "id": "taskAssistant",
+        "id": "taskassistant",
         "file": "declarativeAgent.json"
       }
     ]
