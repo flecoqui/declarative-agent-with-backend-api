@@ -278,7 +278,7 @@ Finally, add two PNGs next to the manifest in `appPackage/`:
 Now, the file `backend/.env` is fully configured, you can launch the service locally, using the following command lines:
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+cd backend
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
