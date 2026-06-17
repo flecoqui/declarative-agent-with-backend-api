@@ -30,6 +30,6 @@
       ]
     }
   },
-  "postCreateCommand": "python -m pip install -r ./.devcontainer/requirements.txt && curl -sL https://aka.ms/DevTunnelCliInstall | bash && sudo ln -sf $HOME/bin/devtunnel /usr/local/bin/devtunnel",
+  "postCreateCommand": "echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc && python -m pip install -r ./.devcontainer/requirements.txt && curl -sL https://aka.ms/DevTunnelCliInstall | bash && echo \"python $(python --version)\"",
   "remoteUser": "vscode"
 }
