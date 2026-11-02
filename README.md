@@ -73,6 +73,22 @@ You need two app registrations in the same tenant:
 
 ## 2. Run the backend
 
+### Build the dev container
+
+Open the repository in VS Code and run **Dev Containers: Rebuild and Reopen in
+Container**. The [dev-container configuration](./.devcontainer/devcontainer.json)
+installs Python 3.13 without the feature's optional pipx-based tools (such as
+formatters and linters). Application dependencies are installed separately by
+the post-create command.
+
+If a build or dependency install reports `SSLV3_ALERT_HANDSHAKE_FAILURE` when
+connecting to `files.pythonhosted.org`, check the container build environment's
+proxy/firewall access to both `pypi.org` and `files.pythonhosted.org`. If your
+organization uses TLS inspection, configure its approved CA certificates in the
+container before package installation. Do not disable TLS verification or add
+`--trusted-host` as a workaround. The pip root-user warning is not the cause of
+this connection failure.
+
 ### Connect your devcontainer with the Azure subscription
 
 Run the following command to establish a connection with the Azure Subscription
@@ -279,6 +295,7 @@ Now, the file `backend/.env` is fully configured, you can launch the service loc
 
 ```bash
 cd backend
+python -m pip config set global.index-url   https://packagefeedproxy.microsoft.io/pypi/simple/
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
@@ -422,4 +439,3 @@ To make the agent discoverable org-wide:
    - Everything must live in the **same tenant**.
 4. **Wait for propagation.** A newly published agent can take time (often up to
    ~24 hours) to show up in admin center search.
-

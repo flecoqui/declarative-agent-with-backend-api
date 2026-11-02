@@ -17,6 +17,10 @@
     {
       "name": "completeTask",
       "description": "Marks the task with the given id as completed."
+    },
+    {
+      "name": "getMe",
+      "description": "Returns the signed-in user's personal profile information from Microsoft Graph, such as display name, email, job title and office location."
     }
   ],
   "runtimes": [
@@ -29,7 +33,7 @@
       "spec": {
         "url": "apiSpecification.yaml"
       },
-      "run_for_functions": ["listTasks", "createTask", "completeTask"]
+      "run_for_functions": ["listTasks", "createTask", "completeTask", "getMe"]
     }
   ]
 }

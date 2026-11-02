@@ -53,6 +53,18 @@ paths:
                 $ref: "#/components/schemas/Task"
         "404":
           description: Task not found
+  /me:
+    get:
+      operationId: getMe
+      summary: Get the signed-in user's Microsoft Graph profile
+      description: Calls Microsoft Graph (/me) on behalf of the user and returns their personal profile information.
+      responses:
+        "200":
+          description: The signed-in user's Microsoft Graph profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
 components:
   schemas:
     TaskCreate:
@@ -87,3 +99,36 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Task"
+    User:
+      type: object
+      description: A subset of the Microsoft Graph user resource returned by /me.
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+          nullable: true
+        givenName:
+          type: string
+          nullable: true
+        surname:
+          type: string
+          nullable: true
+        userPrincipalName:
+          type: string
+          nullable: true
+        mail:
+          type: string
+          nullable: true
+        jobTitle:
+          type: string
+          nullable: true
+        officeLocation:
+          type: string
+          nullable: true
+        mobilePhone:
+          type: string
+          nullable: true
+        preferredLanguage:
+          type: string
+          nullable: true
